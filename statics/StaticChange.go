@@ -14,3 +14,10 @@ func Int64ToString(num int64) string {
 	}
 	return s
 }
+func IntToString(num int) string {
+	var s string = ""
+	for ; num > 0; num /= 10 {
+		s = s + string(num%10+'0')
+	}
+	return s
+}
