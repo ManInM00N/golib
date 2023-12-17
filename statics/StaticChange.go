@@ -24,24 +24,24 @@ func IntToString(num int) string {
 func ContainNum(ss string) bool {
 	for _, v := range ss {
 		if v >= '0' && v <= '9' {
-			return 1
+			return true
 		}
 	}
-	return 0
+	return false
 }
 func AllNum(ss string) bool {
 	for _, v := range ss {
 		if v < '0' || v > '9' {
-			return 0
+			return false
 		}
 	}
-	return 1
+	return true
 }
 func ContainAlpha(ss string) bool {
 	for _, v := range ss {
 		if v >= 'a' && v <= 'z' || v >= 'A' && v <= 'Z' {
-			return 1
+			return true
 		}
 	}
-	return 0
+	return false
 }
