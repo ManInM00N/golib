@@ -21,3 +21,27 @@ func IntToString(num int) string {
 	}
 	return s
 }
+func ContainNum(ss string) bool {
+	for _, v := range ss {
+		if v >= '0' && v <= '9' {
+			return 1
+		}
+	}
+	return 0
+}
+func AllNum(ss string) bool {
+	for _, v := range ss {
+		if v < '0' || v > '9' {
+			return 0
+		}
+	}
+	return 1
+}
+func ContainAlpha(ss string) bool {
+	for _, v := range ss {
+		if v >= 'a' && v <= 'z' || v >= 'A' && v <= 'Z' {
+			return 1
+		}
+	}
+	return 0
+}
