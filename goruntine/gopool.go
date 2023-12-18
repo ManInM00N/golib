@@ -2,13 +2,13 @@ package goruntine
 
 type GoPool struct {
 	n int
-	c chan any
+	c chan struct{}
 }
 
 func NewGoPool(n int) *GoPool {
 	return &GoPool{
 		n: n,
-		c: make(chan any, n),
+		c: make(chan struct{}, n),
 	}
 }
 func (g *GoPool) add() {
