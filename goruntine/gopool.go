@@ -17,7 +17,7 @@ func (g *GoPool) add() {
 func (g *GoPool) pop() {
 	<-g.c
 }
-func (g *GoPool) run(f func()) {
+func (g *GoPool) Run(f func()) {
 	g.add()
 	f()
 	g.pop()
