@@ -10,7 +10,7 @@ func StringToInt64(s string) int64 {
 func Int64ToString(num int64) string {
 	var s string = ""
 	for ; num > 0; num /= 10 {
-		s = s + string(num%10+'0')
+		s = string(num%10+'0') + s
 	}
 	return s
 }
