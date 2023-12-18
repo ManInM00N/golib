@@ -2,7 +2,7 @@ package statics
 
 func StringToInt64(s string) int64 {
 	var num int64 = 0
-	for i := 0; i < len(s); i++ {
+	for i := len(s) - 1; i >= 0; i-- {
 		num = num*10 + int64(s[i]-'0')
 	}
 	return num
