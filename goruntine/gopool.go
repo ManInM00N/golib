@@ -12,7 +12,7 @@ func NewGoPool(n int) *GoPool {
 	}
 }
 func (g *GoPool) add() {
-	g.c <- nil
+	g.c <- struct{}
 }
 func (g *GoPool) pop() {
 	<-g.c
