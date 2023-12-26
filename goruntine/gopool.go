@@ -2,12 +2,13 @@ package goruntine
 
 import "sync"
 
+type Task func()
 type GoPool struct {
 	n  int
-	c  chan func
+	c  chan Task
 	wg sync.WaitGroup
 }
-type Task func()
+
 func NewGoPool(n int, worker int) *GoPool {
 	p := &GoPool{
 		n: n,
@@ -16,19 +17,19 @@ func NewGoPool(n int, worker int) *GoPool {
 	p.AddWorker(worker)
 	return p
 }
-func (g *GoPool) AddWorker(num int){
+func (g *GoPool) AddWorker(num int) {
 	g.wg.Add(worker)
 }
-func (g *GoPool) Add(task Task ) {
+func (g *GoPool) Add(task Task) {
 	g.c <- task
 }
 func (g *GoPool) Pop() {
 	<-g.c
 }
 func (g *GoPool) Run() {
-	go func(){
+	go func() {
 		defer g.Done()
-		for task:=range g.c{
+		for task := range g.c {
 			task()
 		}
 	}()
@@ -39,6 +40,6 @@ func (g *GoPool) Done() {
 func (g *GoPool) Wait() {
 	g.wg.Wait()
 }
-func (g *GoPool)Close(){
+func (g *GoPool) Close() {
 	close(c)
 }
