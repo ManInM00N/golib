@@ -13,8 +13,11 @@ func NewGoPool(n int, worker int) *GoPool {
 		n: n,
 		c: make(chan Task, n),
 	}
-	p.wg.Add(worker)
+	p.AddWorker(worker)
 	return p
+}
+func (g *GoPool) AddWorker(num int){
+	g.wg.Add(worker)
 }
 func (g *GoPool) Add(task Task ) {
 	g.c <- task
