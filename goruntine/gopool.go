@@ -24,9 +24,11 @@ func (g *GoPool) pop() {
 }
 func (g *GoPool) Run(f func()) {
 	g.add()
-	defer g.wg.Done()
 	f()
 	g.pop()
+}
+func (g *GoPool) Done() {
+	g.wg.Done()
 }
 func (g *GoPool) Wait() {
 	g.wg.Wait()
