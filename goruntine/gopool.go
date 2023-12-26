@@ -18,7 +18,7 @@ func NewGoPool(n int, worker int) *GoPool {
 	return p
 }
 func (g *GoPool) AddWorker(num int) {
-	g.wg.Add(worker)
+	g.wg.Add(num)
 }
 func (g *GoPool) Add(task Task) {
 	g.c <- task
@@ -41,5 +41,5 @@ func (g *GoPool) Wait() {
 	g.wg.Wait()
 }
 func (g *GoPool) Close() {
-	close(c)
+	close(g.c)
 }
