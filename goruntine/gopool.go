@@ -9,12 +9,12 @@ type GoPool struct {
 }
 
 func NewGoPool(n int, worker int) *GoPool {
-	wg.Add(worker)
-	return &GoPool{
+	p := &GoPool{
 		n: n,
 		c: make(chan struct{}, n),
 	}
-
+	p.wg.Add(worker)
+	return p
 }
 func (g *GoPool) add() {
 	g.c <- struct{}{}
