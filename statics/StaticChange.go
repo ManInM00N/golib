@@ -1,5 +1,7 @@
 package statics
 
+import "strings"
+
 func StringToInt64(s string) int64 {
 	var num int64 = 0
 	for i := 0; i < len(s); i++ {
@@ -44,4 +46,21 @@ func ContainAlpha(ss string) bool {
 		}
 	}
 	return false
+}
+
+// 取出字符串中数字并拼接
+func CatchNumber(ss string) string {
+	s := ""
+	for _, v := range ss {
+		if v >= '0' && v <= '9' {
+			s = append(s, v)
+		}
+	}
+}
+
+// 得到文件名称及后缀
+func GetFileName(path string) string {
+	index := strings.LastIndex(path, "/")
+	path = path[index+1:]
+	return path
 }
