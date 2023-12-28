@@ -53,9 +53,10 @@ func CatchNumber(ss string) string {
 	s := ""
 	for _, v := range ss {
 		if v >= '0' && v <= '9' {
-			s = append(s, v)
+			s = s + v
 		}
 	}
+	return s
 }
 
 // 得到文件名称及后缀
