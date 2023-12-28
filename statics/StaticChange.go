@@ -53,7 +53,7 @@ func CatchNumber(ss string) string {
 	s := ""
 	for _, v := range ss {
 		if v >= '0' && v <= '9' {
-			s = s + v
+			s = s + string(v)
 		}
 	}
 	return s
