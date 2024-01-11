@@ -75,23 +75,23 @@ func FormatSize(raw int64) string {
 	unit :=["B","KB","MB","GB","TB","EB"]
 	i:=0
 	for i=0;i<len(unit);i++{
-		if (raw<1024){
-			if raw >= 100 {
-				return fmt.Sprintf("%.0f %s", size, unit[i])
-			} else if raw >= 10 {
-				return fmt.Sprintf("%.1f %s", size, unit[i])
+		if (r<1024){
+			if r >= 100 {
+				return fmt.Sprintf("%.0f %s", r, unit[i])
+			} else if r >= 10 {
+				return fmt.Sprintf("%.1f %s", r, unit[i])
 			} else {
-				return fmt.Sprintf("%.2f %s", size, unit[i])
+				return fmt.Sprintf("%.2f %s", r, unit[i])
 			}
 		}
-		raw/=int64(1)<<10
+		r/=int64(1)<<10
 	}
-	if raw >= 100 {
-		return fmt.Sprintf("%.0f %s", size, unit[5])
-	} else if raw >= 10 {
-		return fmt.Sprintf("%.1f %s", size, unit[5])
+	if r >= 100 {
+		return fmt.Sprintf("%.0f %s", r, unit[5])
+	} else if r >= 10 {
+		return fmt.Sprintf("%.1f %s", r, unit[5])
 	} else {
-		return fmt.Sprintf("%.2f %s", size, unit[5])
+		return fmt.Sprintf("%.2f %s", r, unit[5])
 	}
 	return "0B"
 }
