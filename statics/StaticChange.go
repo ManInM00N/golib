@@ -65,3 +65,29 @@ func GetFileName(path string) string {
 	path = path[index+1:]
 	return path
 }
+
+// 计算数据大小
+func FormatSize(raw int64) string {
+	r := float64(raw)
+	unit :=["B","KB","MB","GB","TB","EB"];
+	i:=0
+	for i=0;i<len(unit);i++{
+		if (raw<1024){
+			if raw >= 100 {
+				return fmt.Sprintf("%.0f %s", size, unit[i])
+			} else if raw >= 10 {
+				return fmt.Sprintf("%.1f %s", size, unit[i])
+			} else {
+				return fmt.Sprintf("%.2f %s", size, unit[i])
+			}
+		}
+		raw/=int64(1)<<10
+	}
+	if raw >= 100 {
+		return fmt.Sprintf("%.0f %s", size, unit[5])
+	} else if raw >= 10 {
+		return fmt.Sprintf("%.1f %s", size, unit[5])
+	} else {
+		return fmt.Sprintf("%.2f %s", size, unit[5])
+	}
+}
