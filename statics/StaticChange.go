@@ -23,6 +23,7 @@ func IntToString(num int) string {
 	}
 	return s
 }
+//检查是否包含数字
 func ContainNum(ss string) bool {
 	for _, v := range ss {
 		if v >= '0' && v <= '9' {
@@ -31,6 +32,7 @@ func ContainNum(ss string) bool {
 	}
 	return false
 }
+//检查是否全为数字
 func AllNum(ss string) bool {
 	for _, v := range ss {
 		if v < '0' || v > '9' {
@@ -39,6 +41,7 @@ func AllNum(ss string) bool {
 	}
 	return true
 }
+// 检查是否包含英文字符
 func ContainAlpha(ss string) bool {
 	for _, v := range ss {
 		if v >= 'a' && v <= 'z' || v >= 'A' && v <= 'Z' {
@@ -69,7 +72,7 @@ func GetFileName(path string) string {
 // 计算数据大小
 func FormatSize(raw int64) string {
 	r := float64(raw)
-	unit :=["B","KB","MB","GB","TB","EB"];
+	unit :=["B","KB","MB","GB","TB","EB"]
 	i:=0
 	for i=0;i<len(unit);i++{
 		if (raw<1024){
@@ -90,4 +93,5 @@ func FormatSize(raw int64) string {
 	} else {
 		return fmt.Sprintf("%.2f %s", size, unit[5])
 	}
+	return "0B"
 }
