@@ -72,7 +72,7 @@ func GetFileName(path string) string {
 // 计算数据大小
 func FormatSize(raw int64) string {
 	r := float64(raw)
-	unit :=["B","KB","MB","GB","TB","EB"]
+	unit :=string["B","KB","MB","GB","TB","EB"]
 	i:=0
 	for i=0;i<len(unit);i++{
 		if (r<1024){
