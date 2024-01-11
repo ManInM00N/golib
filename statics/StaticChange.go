@@ -1,6 +1,9 @@
 package statics
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 func StringToInt64(s string) int64 {
 	var num int64 = 0
@@ -23,7 +26,8 @@ func IntToString(num int) string {
 	}
 	return s
 }
-//检查是否包含数字
+
+// 检查是否包含数字
 func ContainNum(ss string) bool {
 	for _, v := range ss {
 		if v >= '0' && v <= '9' {
@@ -32,7 +36,8 @@ func ContainNum(ss string) bool {
 	}
 	return false
 }
-//检查是否全为数字
+
+// 检查是否全为数字
 func AllNum(ss string) bool {
 	for _, v := range ss {
 		if v < '0' || v > '9' {
@@ -41,6 +46,7 @@ func AllNum(ss string) bool {
 	}
 	return true
 }
+
 // 检查是否包含英文字符
 func ContainAlpha(ss string) bool {
 	for _, v := range ss {
@@ -72,10 +78,10 @@ func GetFileName(path string) string {
 // 计算数据大小
 func FormatSize(raw int64) string {
 	r := float64(raw)
-	unit :=string["B","KB","MB","GB","TB","EB"]
-	i:=0
-	for i=0;i<len(unit);i++{
-		if (r<1024){
+	unit := []string{"B", "KB", "MB", "GB", "TB", "EB"}
+	i := 0
+	for i = 0; i < len(unit); i++ {
+		if r < 1024 {
 			if r >= 100 {
 				return fmt.Sprintf("%.0f %s", r, unit[i])
 			} else if r >= 10 {
@@ -84,7 +90,7 @@ func FormatSize(raw int64) string {
 				return fmt.Sprintf("%.2f %s", r, unit[i])
 			}
 		}
-		r/=int64(1)<<10
+		r /= float64(int64(1) << 10)
 	}
 	if r >= 100 {
 		return fmt.Sprintf("%.0f %s", r, unit[5])
