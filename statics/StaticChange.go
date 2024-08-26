@@ -5,6 +5,15 @@ import (
 	"strings"
 )
 
+func GetNumber(s string) string {
+	res := make([]byte, 0)
+	for _, v := range s {
+		if v >= '0' && v <= '9' {
+			res = append(res, byte(v))
+		}
+	}
+	return string(res)
+}
 func StringToInt64(s string) int64 {
 	var num int64 = 0
 	for i := 0; i < len(s); i++ {
