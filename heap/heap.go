@@ -2,6 +2,7 @@ package heap
 
 import (
 	"container/heap"
+	"errors"
 	"sync"
 )
 
@@ -26,6 +27,10 @@ q:=NewPriro...
 heap.Push(q,{})
 it:=heap.Pop(q)
 */
+var (
+	Empty = errors.New("priority queue is empty")
+)
+
 func (pq PriorityQueue[T]) Len() int           { return len(pq.items) }
 func (pq PriorityQueue[T]) Less(i, j int) bool { return pq.lessF(pq.items[i], pq.items[j]) }
 func (pq PriorityQueue[T]) Swap(i, j int)      { pq.items[i], pq.items[j] = pq.items[j], pq.items[i] }
@@ -39,4 +44,10 @@ func (pq *PriorityQueue[T]) Pop() any {
 	item := old[n-1]
 	pq.items = old[0 : n-1]
 	return item
+}
+func (pq *PriorityQueue[T]) Top() T {
+	if pq.Len() == 0 {
+		panic(Empty)
+	}
+	return pq.items[0]
 }
