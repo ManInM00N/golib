@@ -4,7 +4,7 @@ import (
 	"container/heap"
 	"context"
 
-	. "../heap"
+	. "github.com/ManInM00N/go-tool/heap"
 )
 
 type TaskPool struct {
