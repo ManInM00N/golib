@@ -1,7 +1,6 @@
 package goruntine
 
 import (
-	"container/heap"
 	"context"
 
 	. "github.com/ManInM00N/go-tool/heap"
@@ -16,6 +15,7 @@ type task struct {
 	val   int
 	Inner func()
 	ctx   context.Context
+	Info  interface{}
 }
 
 func (t *task) Cancel() {
@@ -49,7 +49,7 @@ func (P *TaskPool) Run() {
 		select {
 		case v := <-P.c:
 			{
-				heap.Push(P.queue, v)
+				P.queue.Push(v)
 			}
 		default:
 			{

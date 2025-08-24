@@ -1,53 +1,151 @@
 package heap
 
 import (
-	"container/heap"
 	"errors"
+	"slices"
 	"sync"
 )
 
-type PriorityQueue[T any] struct {
+type PriorityQueue[T Interface] struct {
 	items []T
 	lessF func(a, b T) bool
-	wg    sync.Pool
+	lk    sync.RWMutex
 }
 
-func NewPriorityQueue[T any](lessF func(a, b T) bool) *PriorityQueue[T] {
+func NewPriorityQueue[T Interface](lessF func(a, b T) bool) *PriorityQueue[T] {
 	pq := &PriorityQueue[T]{
 		items: []T{},
 		lessF: lessF,
 	}
-	heap.Init(pq)
+	pq.Init()
 	return pq
 }
 
 /*
 use PriorityQueue:
 q:=NewPriro...
-heap.Push(q,{})
-it:=heap.Pop(q)
+q.Push({})
+it:=q.Pop()
+it:=q.Top()
 */
 var (
-	Empty = errors.New("priority queue is empty")
+	Empty      = errors.New("priority queue is empty")
+	OutOfIndex = errors.New("Out of index")
 )
 
-func (pq PriorityQueue[T]) Len() int           { return len(pq.items) }
-func (pq PriorityQueue[T]) Less(i, j int) bool { return pq.lessF(pq.items[i], pq.items[j]) }
-func (pq PriorityQueue[T]) Swap(i, j int)      { pq.items[i], pq.items[j] = pq.items[j], pq.items[i] }
-func (pq *PriorityQueue[T]) Push(x any)        { pq.items = append(pq.items, x.(T)) }
+func (pq *PriorityQueue[T]) Len() int {
+	pq.lk.RLock()
+	defer pq.lk.RUnlock()
+	return len(pq.items)
+}
+func (pq *PriorityQueue[T]) less(i, j int) bool { return pq.lessF(pq.items[i], pq.items[j]) }
+func (pq *PriorityQueue[T]) swap(i, j int)      { pq.items[i], pq.items[j] = pq.items[j], pq.items[i] }
+func (pq *PriorityQueue[T]) Push(x Interface) {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	pq.items = append(pq.items, x.(T))
+	pq.up(x, len(pq.items)-1)
+}
 func (pq *PriorityQueue[T]) Pop() any {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
 	old := pq.items
-	n := len(old)
-	if n == 0 {
-		return nil
+	n := len(old) - 1
+	if n == -1 {
+		panic(Empty)
 	}
-	item := old[n-1]
-	pq.items = old[0 : n-1]
+	pq.swap(0, n)
+	pq.down(0, n)
+	item := old[n]
+	pq.items = old[0:n]
 	return item
 }
 func (pq *PriorityQueue[T]) Top() T {
-	if pq.Len() == 0 {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	if len(pq.items) == 0 {
 		panic(Empty)
 	}
 	return pq.items[0]
+}
+
+type Interface interface {
+}
+
+func (pq *PriorityQueue[T]) Init() {
+	// heapify
+	pq.lk.RLock()
+	defer pq.lk.RUnlock()
+	n := len(pq.items)
+	for i := n/2 - 1; i >= 0; i-- {
+		pq.down(i, n)
+	}
+}
+func (pq *PriorityQueue[T]) Remove(h Interface, i int) any {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	n := pq.Len() - 1
+	if n != i {
+		pq.swap(i, n)
+		if !pq.down(i, n) {
+			pq.up(h, i)
+		}
+	}
+	return pq.Pop()
+}
+
+func (pq *PriorityQueue[T]) Fix(h Interface, i int) {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	if i >= len(pq.items) {
+		panic(OutOfIndex)
+	}
+	pq.items[i] = h.(T)
+	if !pq.down(i, len(pq.items)) {
+		pq.up(h, i)
+	}
+}
+
+func (pq *PriorityQueue[T]) up(h Interface, j int) {
+	for {
+		i := (j - 1) / 2 // parent
+		if i == j || !pq.less(j, i) {
+			break
+		}
+		pq.swap(i, j)
+		j = i
+	}
+}
+
+func (pq *PriorityQueue[T]) down(i0, n int) bool {
+	i := i0
+	for {
+		j1 := 2*i + 1
+		if j1 >= n || j1 < 0 { // j1 < 0 after int overflow
+			break
+		}
+		j := j1 // left child
+		if j2 := j1 + 1; j2 < n && pq.less(j2, j1) {
+			j = j2 // = 2*i + 2  // right child
+		}
+		if !pq.less(j, i) {
+			break
+		}
+		pq.swap(i, j)
+		i = j
+	}
+	return i > i0
+}
+
+func (pq *PriorityQueue[T]) Clear() {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	pq.items = []T{}
+}
+
+func (pq *PriorityQueue[T]) Items() []T {
+	pq.lk.RLock()
+	defer pq.lk.RUnlock()
+	tmp := slices.Clone(pq.items)
+	return tmp
 }
