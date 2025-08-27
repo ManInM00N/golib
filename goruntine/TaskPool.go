@@ -27,8 +27,16 @@ type task struct {
 	val    int
 	Inner  func()
 	ctx    context.Context
-	Info   interface{}
+	Info   *interface{}
 	status int
+}
+
+func (t *task) GetStatus() int {
+	return t.status
+}
+
+func (t *task) SetStatus(status int) {
+	t.status = status
 }
 
 func (t *task) Cancel() {
@@ -90,7 +98,7 @@ func (g *TaskPool) AddCount(num int) {
 func (g *TaskPool) NewTask(fn func(), info interface{}, val int) (task, context.CancelFunc) {
 	t, cancel := NewTask(val)
 	t.Inner = fn
-	t.Info = info
+	t.Info = &info
 	return t, cancel
 }
 func (p *TaskPool) Add(t task) {
@@ -140,12 +148,6 @@ func (p *TaskPool) GetTaskStatistic() ([]task, map[string]interface{}) {
 		stats[k] = map[string]interface{}{
 			"status": v.GetStatus(),
 			"task":   v.GetTaskInfo(),
-		}
-	}
-	for id, w := range p.workers {
-		stats[id] = map[string]interface{}{
-			"status": w.GetStatus(),
-			"task":   w.GetTaskInfo(),
 		}
 	}
 	return arr, stats

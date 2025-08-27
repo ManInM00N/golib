@@ -30,11 +30,15 @@ func (p *worker) Run() {
 
 		p.pool.sem <- struct{}{}
 		go func(t task) {
+			t.SetStatus(1)
 			defer func() {
 				<-p.pool.sem
 				p.pool.Done()
 			}()
 			t.Inner()
+			if t.GetStatus() != -1 {
+				t.SetStatus(2)
+			}
 		}(t)
 	}
 	p.pool.workersNum.Add(-1)
@@ -67,9 +71,8 @@ func (p *worker) GetPool() *TaskPool {
 func (p *worker) GetTaskInfo() any {
 	return p.task.Info
 }
-func (p *worker) UpdateTaskInfo(info any) {
+func (p *worker) UpdateTaskInfo(info *any) {
 	p.task.Info = info
-	return
 }
 func (p *worker) GetStatus() int {
 	return p.status
