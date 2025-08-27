@@ -39,3 +39,38 @@ func (p *worker) Run() {
 	}
 	p.pool.workersNum.Add(-1)
 }
+
+func (p *worker) Stop() {
+	p.status = -1
+}
+
+func (p *worker) IsRunning() bool {
+	return p.status == 1
+}
+
+func (p *worker) IsIdle() bool {
+	return p.status == 0
+}
+
+func (p *worker) IsStop() bool {
+	return p.status == -1
+}
+
+func (p *worker) GetID() string {
+	return p.id
+}
+
+func (p *worker) GetPool() *TaskPool {
+	return p.pool
+}
+
+func (p *worker) GetTaskInfo() any {
+	return p.task.Info
+}
+func (p *worker) UpdateTaskInfo(info any) {
+	p.task.Info = info
+	return
+}
+func (p *worker) GetStatus() int {
+	return p.status
+}

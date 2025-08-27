@@ -126,3 +126,27 @@ func (p *TaskPool) Lock() {
 func (p *TaskPool) Unlock() {
 	p.mu.Unlock()
 }
+
+func (p *TaskPool) GetWorkers() map[string]*worker {
+	return p.workers
+}
+
+func (p *TaskPool) GetTaskStatistic() ([]task, map[string]interface{}) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	stats := make(map[string]interface{})
+	arr := p.queue.Items()
+	for k, v := range p.workers {
+		stats[k] = map[string]interface{}{
+			"status": v.GetStatus(),
+			"task":   v.GetTaskInfo(),
+		}
+	}
+	for id, w := range p.workers {
+		stats[id] = map[string]interface{}{
+			"status": w.GetStatus(),
+			"task":   w.GetTaskInfo(),
+		}
+	}
+	return arr, stats
+}
