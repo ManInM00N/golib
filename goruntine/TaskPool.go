@@ -145,10 +145,15 @@ func (p *TaskPool) GetTaskStatistic() ([]task, map[string]interface{}) {
 	stats := make(map[string]interface{})
 	arr := p.queue.Items()
 	for k, v := range p.workers {
-		stats[k] = map[string]interface{}{
+		t := map[string]interface{}{
 			"status": v.GetStatus(),
-			"task":   v.GetTaskInfo(),
 		}
+		if v.GetTaskInfo() != nil {
+			t["task"] = v.GetTaskInfo()
+		} else {
+			t["task"] = "No task"
+		}
+		stats[k] = t
 	}
 	return arr, stats
 }
