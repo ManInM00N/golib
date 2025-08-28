@@ -148,7 +148,7 @@ func (p *TaskPool) GetTaskStatistic() ([]task, map[string]interface{}) {
 		t := map[string]interface{}{
 			"status": v.GetStatus(),
 		}
-		if v.GetTaskInfo() != nil {
+		if v.task != nil {
 			t["task"] = v.GetTaskInfo()
 		} else {
 			t["task"] = "No task"
