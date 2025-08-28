@@ -27,7 +27,7 @@ func (p *worker) Run() {
 		p.status = 1
 		t := p.pool.queue.Pop().(task)
 		p.pool.mu.Unlock()
-
+		p.task = &t
 		p.pool.sem <- struct{}{}
 		go func(t task) {
 			t.SetStatus(1)
