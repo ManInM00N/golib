@@ -30,11 +30,9 @@ func (p *worker) Run() {
 		p.task = &t
 		p.pool.sem <- struct{}{}
 		t.SetStatus(1)
-		defer func() {
-			<-p.pool.sem
-			p.pool.Done()
-		}()
 		t.Inner()
+		<-p.pool.sem
+		p.pool.Done()
 		if t.GetStatus() != -1 {
 			t.SetStatus(2)
 		} else {
