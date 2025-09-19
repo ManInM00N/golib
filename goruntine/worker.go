@@ -13,15 +13,16 @@ func (p *worker) Run() {
 	p.pool.workersNum.Add(1)
 	for {
 		p.pool.mu.Lock()
-		if p.pool.queue.Len() == 0 && p.pool.running {
-			p.pool.mu.Unlock()
-			time.Sleep(time.Second)
-			continue
-		}
+
 		if !p.pool.running && p.pool.queue.Len() == 0 {
 			p.status = -1
 			p.pool.mu.Unlock()
 			break
+		}
+		if p.pool.queue.Len() == 0 {
+			p.pool.mu.Unlock()
+			time.Sleep(time.Second)
+			continue
 		}
 		p.status = 1
 		t := p.pool.queue.Pop().(task)
