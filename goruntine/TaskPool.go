@@ -24,11 +24,11 @@ type TaskPool struct {
 }
 
 type task struct {
-	val    int
-	Inner  func()
-	ctx    context.Context
-	Info   *interface{}
-	status int
+	val    int             `json:"val"`
+	Inner  func()          `json:"-"`
+	ctx    context.Context `json:"-"`
+	Info   *interface{}    `json:"info"`
+	status int             `json:"status"` //0未执行 1执行中 2完成 -1取消
 }
 
 func (t *task) GetStatus() int {
