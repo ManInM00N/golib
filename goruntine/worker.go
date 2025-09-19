@@ -79,7 +79,10 @@ func (p *worker) GetPool() *TaskPool {
 }
 
 func (p *worker) GetTaskInfo() any {
-	return p.task.Info
+	if p.task.Info == nil {
+		return nil
+	}
+	return *(p.task.Info)
 }
 func (p *worker) UpdateTaskInfo(info *any) {
 	p.task.Info = info
