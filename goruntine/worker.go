@@ -14,7 +14,6 @@ func (p *worker) Run() {
 	for {
 		p.pool.mu.Lock()
 		if p.pool.queue.Len() == 0 && p.pool.running {
-			p.status = 0
 			p.pool.mu.Unlock()
 			time.Sleep(time.Second)
 			continue
@@ -29,17 +28,28 @@ func (p *worker) Run() {
 		p.pool.mu.Unlock()
 		p.task = &t
 		p.pool.sem <- struct{}{}
-		go func(t task) {
-			t.SetStatus(1)
-			defer func() {
-				<-p.pool.sem
-				p.pool.Done()
-			}()
-			t.Inner()
-			if t.GetStatus() != -1 {
-				t.SetStatus(2)
-			}
-		}(t)
+		t.SetStatus(1)
+		defer func() {
+			<-p.pool.sem
+			p.pool.Done()
+		}()
+		t.Inner()
+		if t.GetStatus() != -1 {
+			t.SetStatus(2)
+		} else {
+			p.status = 0
+		}
+		// go func(t task) {
+		// 	t.SetStatus(1)
+		// 	defer func() {
+		// 		<-p.pool.sem
+		// 		p.pool.Done()
+		// 	}()
+		// 	t.Inner()
+		// 	if t.GetStatus() != -1 {
+		// 		t.SetStatus(2)
+		// 	}
+		// }(t)
 	}
 	p.pool.workersNum.Add(-1)
 }
