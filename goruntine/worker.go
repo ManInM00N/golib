@@ -39,6 +39,7 @@ func (p *worker) Run() {
 		} else {
 			p.status = 0
 		}
+		p.task = nil
 		// go func(t task) {
 		// 	t.SetStatus(1)
 		// 	defer func() {
