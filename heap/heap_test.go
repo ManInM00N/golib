@@ -18,11 +18,16 @@ func (xx *ab) Less(yy ab) bool {
 }
 
 func TestPriorityQueue(t *testing.T) {
-	q := NewPriorityQueue(func(x, y ab) bool {
-		return x.Less(y)
-	})
+	q := NewPriorityQueueWithOptions(
+		WithLessFunc(func(x, y ab) bool {
+			return x.Less(y)
+		}),
+		WithEqualFunc(func(x, y ab) bool {
+			return x.x == y.x && x.y == y.y
+		}))
 	q.Push(ab{1, 2})
 	q.Push(ab{3, 2})
+	q.Push(ab{2, 2})
 	q.Push(ab{2, 2})
 	q.Push(ab{5, 2})
 	q.Push(ab{2, 4})
@@ -31,6 +36,9 @@ func TestPriorityQueue(t *testing.T) {
 	for q.Len() > 0 {
 		tmp := q.Top()
 		fmt.Println(tmp.x, tmp.y)
+		if tmp.y == 99 {
+			q.RemoveEqual(ab{2, 2})
+		}
 		q.Pop()
 	}
 }

@@ -7,9 +7,21 @@ import (
 )
 
 type PriorityQueue[T Interface] struct {
-	items []T
-	lessF func(a, b T) bool
-	lk    sync.RWMutex
+	items  []T               `json:"items"`
+	lessF  func(a, b T) bool `json:"-"`
+	equalF func(a, b T) bool `json:"-"`
+	lk     sync.RWMutex      `json:"-"`
+}
+
+func NewPriorityQueueWithOptions[T Interface](opts ...Option[T]) *PriorityQueue[T] {
+	pq := &PriorityQueue[T]{
+		items: []T{},
+	}
+	for _, opt := range opts {
+		opt(pq)
+	}
+	pq.Init()
+	return pq
 }
 
 func NewPriorityQueue[T Interface](lessF func(a, b T) bool) *PriorityQueue[T] {
@@ -23,7 +35,7 @@ func NewPriorityQueue[T Interface](lessF func(a, b T) bool) *PriorityQueue[T] {
 
 /*
 use PriorityQueue:
-q:=NewPriro...
+q:=NewPriorityQueue(...)
 q.Push({})
 it:=q.Pop()
 it:=q.Top()
@@ -70,6 +82,18 @@ func (pq *PriorityQueue[T]) Top() T {
 }
 
 type Interface interface {
+}
+
+func (pq *PriorityQueue[T]) RemoveEqual(item T) bool {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	if pq.equalF == nil {
+		return false
+	}
+	pq.items = slices.DeleteFunc(pq.items, func(i T) bool {
+		return pq.equalF(i, item)
+	})
+	return true
 }
 
 func (pq *PriorityQueue[T]) Init() {
