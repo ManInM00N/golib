@@ -5,6 +5,8 @@ type Option[T Interface] func(pq *PriorityQueue[T])
 // WithLessFunc 设置比较函数
 func WithLessFunc[T Interface](lessF func(a, b T) bool) Option[T] {
 	return func(pq *PriorityQueue[T]) {
+		pq.lk.Lock()
+		defer pq.lk.Unlock()
 		pq.lessF = lessF
 	}
 }
@@ -12,6 +14,8 @@ func WithLessFunc[T Interface](lessF func(a, b T) bool) Option[T] {
 // WithEqualFunc 设置相等判断函数
 func WithEqualFunc[T Interface](equalF func(a, b T) bool) Option[T] {
 	return func(pq *PriorityQueue[T]) {
+		pq.lk.Lock()
+		defer pq.lk.Unlock()
 		pq.equalF = equalF
 	}
 }
@@ -19,6 +23,8 @@ func WithEqualFunc[T Interface](equalF func(a, b T) bool) Option[T] {
 // WithInitialItems 设置初始元素
 func WithInitialItems[T Interface](items []T) Option[T] {
 	return func(pq *PriorityQueue[T]) {
+		pq.lk.Lock()
+		defer pq.lk.Unlock()
 		pq.items = items
 	}
 }
