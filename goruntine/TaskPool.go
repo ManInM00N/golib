@@ -54,17 +54,15 @@ func NewTask(val int) (task, context.CancelFunc) {
 	return task, cancel
 }
 
-func NewTaskPool(workers int, maxConcurrent int) *TaskPool {
+func NewTaskPool(workers int, maxConcurrent int, opts ...Option[task]) *TaskPool {
 	temp := &TaskPool{
 		n:       workers,
 		c:       make(chan task),
 		sem:     make(chan struct{}, maxConcurrent),
 		cond:    sync.NewCond(&sync.Mutex{}),
 		workers: make(map[string]*worker),
-		queue: NewPriorityQueue[task](func(i, j task) bool {
-			return i.val > j.val
-		}),
-		mu: sync.Mutex{},
+		queue:   NewPriorityQueueWithOptions[task](opts...),
+		mu:      sync.Mutex{},
 	}
 	return temp
 }

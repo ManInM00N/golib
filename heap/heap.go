@@ -20,6 +20,9 @@ func NewPriorityQueueWithOptions[T Interface](opts ...Option[T]) *PriorityQueue[
 	for _, opt := range opts {
 		opt(pq)
 	}
+	if pq.lessF == nil {
+		panic(ErrRequiredLess)
+	}
 	pq.Init()
 	return pq
 }
@@ -41,8 +44,9 @@ it:=q.Pop()
 it:=q.Top()
 */
 var (
-	Empty      = errors.New("priority queue is empty")
-	OutOfIndex = errors.New("Out of index")
+	ErrEmpty        = errors.New("priority queue is empty")
+	ErrOutOfIndex   = errors.New("Out of index")
+	ErrRequiredLess = errors.New("less function is required")
 )
 
 func (pq *PriorityQueue[T]) Len() int {
