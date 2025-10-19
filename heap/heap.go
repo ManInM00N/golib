@@ -68,7 +68,7 @@ func (pq *PriorityQueue[T]) Pop() any {
 	old := pq.items
 	n := len(old) - 1
 	if n == -1 {
-		panic(Empty)
+		panic(ErrEmpty)
 	}
 	pq.swap(0, n)
 	pq.down(0, n)
@@ -80,24 +80,45 @@ func (pq *PriorityQueue[T]) Top() T {
 	pq.lk.Lock()
 	defer pq.lk.Unlock()
 	if len(pq.items) == 0 {
-		panic(Empty)
+		panic(ErrEmpty)
 	}
 	return pq.items[0]
+}
+
+func (pq *PriorityQueue[T]) SetFunc(opt Option[T]) {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	opt(pq)
 }
 
 type Interface interface {
 }
 
-func (pq *PriorityQueue[T]) RemoveEqual(item T) bool {
+// RemoveEqual 删除满足条件的相同的元素，返回删除的数量或-1（当没有设置相等判断函数时）
+func (pq *PriorityQueue[T]) RemoveEqual(item T) int {
 	pq.lk.Lock()
 	defer pq.lk.Unlock()
 	if pq.equalF == nil {
-		return false
+		return -1
 	}
+	num := len(pq.items)
+	// 删除满足条件的任务
 	pq.items = slices.DeleteFunc(pq.items, func(i T) bool {
-		return pq.equalF(i, item)
+		return pq.equalF(item, i)
 	})
-	return true
+	return num - len(pq.items)
+}
+
+// RemoveEqual 删除满足条件的元素，返回删除的数量或-1（当没有设置相等判断函数时）
+func (pq *PriorityQueue[T]) RemoveByDeleteFunc(deleteFunc func(item T) bool) int {
+	pq.lk.Lock()
+	defer pq.lk.Unlock()
+	num := len(pq.items)
+	// 删除满足条件的任务
+	pq.items = slices.DeleteFunc(pq.items, func(i T) bool {
+		return deleteFunc(i)
+	})
+	return num - len(pq.items)
 }
 
 func (pq *PriorityQueue[T]) Init() {
@@ -126,7 +147,7 @@ func (pq *PriorityQueue[T]) Fix(h Interface, i int) {
 	pq.lk.Lock()
 	defer pq.lk.Unlock()
 	if i >= len(pq.items) {
-		panic(OutOfIndex)
+		panic(ErrOutOfIndex)
 	}
 	pq.items[i] = h.(T)
 	if !pq.down(i, len(pq.items)) {

@@ -2,17 +2,17 @@ package goruntine
 
 import "sync"
 
-type Task func()
+type SingleTask func()
 type GoPool struct {
 	n  int
-	c  chan Task
+	c  chan SingleTask
 	wg sync.WaitGroup
 }
 
 func NewGoPool(n int, worker int) *GoPool {
 	p := &GoPool{
 		n: n,
-		c: make(chan Task, n),
+		c: make(chan SingleTask, n),
 	}
 	p.AddWorker(worker)
 	return p
@@ -20,8 +20,8 @@ func NewGoPool(n int, worker int) *GoPool {
 func (g *GoPool) AddWorker(num int) {
 	g.wg.Add(num)
 }
-func (g *GoPool) Add(task Task) {
-	g.c <- task
+func (g *GoPool) Add(SingleTask SingleTask) {
+	g.c <- SingleTask
 }
 func (g *GoPool) Pop() {
 	<-g.c
@@ -29,8 +29,8 @@ func (g *GoPool) Pop() {
 func (g *GoPool) Run() {
 	go func() {
 		defer g.Done()
-		for task := range g.c {
-			task()
+		for SingleTask := range g.c {
+			SingleTask()
 		}
 	}()
 }

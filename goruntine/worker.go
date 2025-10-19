@@ -2,10 +2,16 @@ package goruntine
 
 import "time"
 
+const (
+	WorkerStatusIdle    = 0
+	WorkerStatusRunning = 1
+	WorkerStatusStop    = -1
+)
+
 type worker struct {
 	id     string
 	pool   *TaskPool
-	task   *task
+	task   *Task
 	status int //0空闲 1工作 -1停止
 }
 
@@ -15,7 +21,7 @@ func (p *worker) Run() {
 		p.pool.mu.Lock()
 
 		if !p.pool.running && p.pool.queue.Len() == 0 {
-			p.status = -1
+			p.status = WorkerStatusStop
 			p.pool.mu.Unlock()
 			break
 		}
@@ -24,50 +30,39 @@ func (p *worker) Run() {
 			time.Sleep(time.Second)
 			continue
 		}
-		p.status = 1
-		t := p.pool.queue.Pop().(task)
+		p.status = WorkerStatusRunning
+		t := p.pool.queue.Pop().(Task)
 		p.pool.mu.Unlock()
 		p.task = &t
 		p.pool.sem <- struct{}{}
-		t.SetStatus(1)
-		t.Inner()
+		t.setStatus(TaskStatusRunning)
+		t.inner()
 		<-p.pool.sem
 		p.pool.Done()
-		if t.GetStatus() != -1 {
-			t.SetStatus(2)
+		if t.GetStatus() != TaskStatusCanceled {
+			t.setStatus(TaskStatusCompleted)
 		} else {
-			p.status = 0
+			p.status = WorkerStatusIdle
 		}
 		p.task = nil
-		// go func(t task) {
-		// 	t.SetStatus(1)
-		// 	defer func() {
-		// 		<-p.pool.sem
-		// 		p.pool.Done()
-		// 	}()
-		// 	t.Inner()
-		// 	if t.GetStatus() != -1 {
-		// 		t.SetStatus(2)
-		// 	}
-		// }(t)
 	}
 	p.pool.workersNum.Add(-1)
 }
 
 func (p *worker) Stop() {
-	p.status = -1
+	p.status = WorkerStatusStop
 }
 
 func (p *worker) IsRunning() bool {
-	return p.status == 1
+	return p.status == WorkerStatusRunning
 }
 
 func (p *worker) IsIdle() bool {
-	return p.status == 0
+	return p.status == WorkerStatusIdle
 }
 
 func (p *worker) IsStop() bool {
-	return p.status == -1
+	return p.status == WorkerStatusStop
 }
 
 func (p *worker) GetID() string {
@@ -79,13 +74,13 @@ func (p *worker) GetPool() *TaskPool {
 }
 
 func (p *worker) GetTaskInfo() any {
-	if p.task.Info == nil {
+	if p.task.GetInfo() == nil {
 		return nil
 	}
-	return *(p.task.Info)
+	return *(p.task.GetInfo())
 }
 func (p *worker) UpdateTaskInfo(info *any) {
-	p.task.Info = info
+	p.task.info = info
 }
 func (p *worker) GetStatus() int {
 	return p.status

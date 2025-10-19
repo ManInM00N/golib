@@ -1,7 +1,6 @@
 package heap
 
 import (
-	"fmt"
 	"os"
 	"testing"
 )
@@ -35,8 +34,12 @@ func TestPriorityQueue(t *testing.T) {
 
 	for q.Len() > 0 {
 		tmp := q.Top()
-		fmt.Println(tmp.x, tmp.y)
+		t.Error(tmp.x, tmp.y, *tmp == ab{1, 99})
+
 		if tmp.y == 99 {
+			q.RemoveByDeleteFunc(func(item *ab) bool {
+				return item.x == 2 && item.y == 2
+			})
 			q.RemoveEqual(&ab{2, 2})
 		}
 		q.Pop()
