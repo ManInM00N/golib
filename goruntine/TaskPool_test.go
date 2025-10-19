@@ -1,6 +1,7 @@
 package goruntine
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -54,7 +55,10 @@ func TestRemoveTask(t *testing.T) {
 		info := (*item.GetInfo()).(*ab)
 		return info.x == 2 && info.y < 2
 	})
-
+	a, _ := pool.GetTaskStatistic()
+	for _, v := range a {
+		fmt.Print(*v.info, " ")
+	}
 	pool.Run()
 	pool.Wait()
 	/*

@@ -35,6 +35,13 @@ type Task struct {
 	status      int             `json:"status"` // 0未执行 1执行中 2完成 -1取消
 }
 
+type TaskDTO struct {
+	InQueueTime time.Time   `json:"in_queue_time"`
+	Val         int         `json:"val"`
+	Info        interface{} `json:"info"`
+	Status      int         `json:"status"` // 0未执行 1执行中 2完成 -1取消
+}
+
 const (
 	TaskStatusPending   = 0
 	TaskStatusRunning   = 1
@@ -57,6 +64,10 @@ func (t *Task) GetStatus() int {
 
 func (t *Task) GetContext() context.Context {
 	return t.ctx
+}
+
+func (t *Task) GetInQueueTime() time.Time {
+	return t.inQueueTime
 }
 
 func (t *Task) setStatus(status int) {
@@ -210,11 +221,22 @@ func (p *TaskPool) GetWorkers() map[string]*worker {
 	return p.workers
 }
 
-func (p *TaskPool) GetTaskStatistic() ([]Task, map[string]interface{}) {
+func (p *TaskPool) GetTaskStatistic() ([]TaskDTO, map[string]interface{}) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	stats := make(map[string]interface{})
 	arr := p.queue.Items()
+	var res []TaskDTO
+	for _, v := range arr {
+		t := TaskDTO{
+			InQueueTime: v.GetInQueueTime(),
+			Val:         v.GetVal(),
+			Info:        *(v.GetInfo()),
+			Status:      v.GetStatus(),
+		}
+		res = append(res, t)
+	}
+
 	for k, v := range p.workers {
 		t := map[string]interface{}{
 			"status": v.GetStatus(),
@@ -226,5 +248,5 @@ func (p *TaskPool) GetTaskStatistic() ([]Task, map[string]interface{}) {
 		}
 		stats[k] = t
 	}
-	return arr, stats
+	return res, stats
 }
