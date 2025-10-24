@@ -25,10 +25,10 @@ func WithTaskEquality(equalF func(a, b Task) bool) Option[Task] {
 	return WithEqualFunc(equalF)
 }
 
-// WithTaskEqualityByVal 按 Val 字段判断任务是否相等
-func WithTaskEqualityByVal() Option[Task] {
+// WithTaskEqualityByPriority 按 Priority 字段判断任务是否相等
+func WithTaskEqualityByPriority() Option[Task] {
 	return WithEqualFunc(func(a, b Task) bool {
-		return a.GetVal() == b.GetVal()
+		return a.GetPriority() == b.GetPriority()
 	})
 }
 
@@ -65,17 +65,17 @@ func WithTaskEqualityByInfoFunc(equalF func(a, b interface{}) bool) Option[Task]
 	})
 }
 
-// WithHighestValueFirst 值大的任务优先执行（降序）
-func WithHighestValueFirst() Option[Task] {
+// WithHighestPriorityFirst 值大的任务优先执行（降序）
+func WithHighestPriorityFirst() Option[Task] {
 	return WithLessFunc(func(a, b Task) bool {
-		return a.GetVal() > b.GetVal()
+		return a.GetPriority() > b.GetPriority()
 	})
 }
 
-// WithLowestValueFirst 值小的任务优先执行（升序，默认）
-func WithLowestValueFirst() Option[Task] {
+// WithLowestPriorityFirst 值小的任务优先执行（升序，默认）
+func WithLowestPriorityFirst() Option[Task] {
 	return WithLessFunc(func(a, b Task) bool {
-		return a.GetVal() < b.GetVal()
+		return a.GetPriority() < b.GetPriority()
 	})
 }
 

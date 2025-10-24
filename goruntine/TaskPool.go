@@ -19,6 +19,7 @@ type TaskPool struct {
 	queue         *PriorityQueue[Task]
 	cond          *sync.Cond
 	maxConcurrent int
+	costSum       atomic.Int32
 	mu            sync.Mutex
 	sem           chan struct{}
 	running       bool
@@ -28,7 +29,8 @@ type TaskPool struct {
 
 type Task struct {
 	inQueueTime time.Time       `json:"in_queue_time"`
-	val         int             `json:"val"`
+	priority    int             `json:"priority"`
+	weight      int             `json:"weight"`
 	inner       func()          `json:"-"`
 	ctx         context.Context `json:"-"`
 	info        *interface{}    `json:"info"`
@@ -37,7 +39,8 @@ type Task struct {
 
 type TaskDTO struct {
 	InQueueTime time.Time   `json:"in_queue_time"`
-	Val         int         `json:"val"`
+	Priority    int         `json:"priority"`
+	Weight      int         `json:"weight"`
 	Info        interface{} `json:"info"`
 	Status      int         `json:"status"` // 0未执行 1执行中 2完成 -1取消
 }
@@ -50,8 +53,8 @@ const (
 )
 
 // Getter 方法 - 提供只读访问
-func (t *Task) GetVal() int {
-	return t.val
+func (t *Task) GetPriority() int {
+	return t.priority
 }
 
 func (t *Task) GetInfo() *interface{} {
@@ -81,13 +84,28 @@ func (t *Task) Cancel() {
 	}
 }
 
-func NewTask(val int) (Task, context.CancelFunc) {
+// priority 优先级
+func NewTask(priority int) (Task, context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 	task := Task{
-		val:    val,
-		inner:  func() {},
-		ctx:    ctx,
-		status: 0,
+		priority: priority,
+		inner:    func() {},
+		ctx:      ctx,
+		weight:   1,
+		status:   0,
+	}
+	return task, cancel
+}
+
+// cost 任务执行成本（权重）
+func NewTaskWithCost(priority int, cost int) (Task, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(context.Background())
+	task := Task{
+		priority: priority,
+		inner:    func() {},
+		ctx:      ctx,
+		weight:   cost,
+		status:   0,
 	}
 	return task, cancel
 }
@@ -98,20 +116,21 @@ func NewTask(val int) (Task, context.CancelFunc) {
 // opts: heap.Option[task] 用于配置优先队列（可以使用 heap.WithLessFunc, heap.WithEqualFunc 等）
 func NewTaskPool(workers int, maxConcurrent int, opts ...Option[Task]) *TaskPool {
 	defaultOpts := []Option[Task]{
-		WithLowestValueFirst(),
-		WithTaskEqualityByVal(),
+		WithLowestPriorityFirst(),
+		WithTaskEqualityByPriority(),
 	}
 
 	allOpts := append(defaultOpts, opts...)
 
 	temp := &TaskPool{
-		n:       workers,
-		c:       make(chan Task),
-		sem:     make(chan struct{}, maxConcurrent),
-		cond:    sync.NewCond(&sync.Mutex{}),
-		workers: make(map[string]*worker),
-		queue:   NewPriorityQueueWithOptions(allOpts...),
-		mu:      sync.Mutex{},
+		n:             workers,
+		c:             make(chan Task),
+		sem:           make(chan struct{}, workers),
+		maxConcurrent: maxConcurrent,
+		cond:          sync.NewCond(&sync.Mutex{}),
+		workers:       make(map[string]*worker),
+		queue:         NewPriorityQueueWithOptions(allOpts...),
+		mu:            sync.Mutex{},
 	}
 
 	return temp
@@ -151,8 +170,17 @@ func (g *TaskPool) AddCount(num int) {
 	g.wg.Add(num)
 }
 
-func (g *TaskPool) NewTask(fn func(), info interface{}, val int) (Task, context.CancelFunc) {
-	t, cancel := NewTask(val)
+// NewTask 创建新任务 Priority 优先级
+func (g *TaskPool) NewTask(fn func(), info interface{}, priority int) (Task, context.CancelFunc) {
+	t, cancel := NewTask(priority)
+	t.inner = fn
+	t.info = &info
+	return t, cancel
+}
+
+// NewTaskWithCost 创建带有执行权重的任务
+func (g *TaskPool) NewTaskWithCost(fn func(), info interface{}, priority int, weight int) (Task, context.CancelFunc) {
+	t, cancel := NewTaskWithCost(priority, weight)
 	t.inner = fn
 	t.info = &info
 	return t, cancel
@@ -187,6 +215,7 @@ func (p *TaskPool) Add(t Task) {
 	defer p.mu.Unlock()
 	p.AddCount(1)
 	t.inQueueTime = time.Now()
+	t.weight = min(t.weight, p.maxConcurrent)
 	p.queue.Push(t)
 	p.cond.Signal()
 }
@@ -230,7 +259,7 @@ func (p *TaskPool) GetTaskStatistic() ([]TaskDTO, map[string]interface{}) {
 	for _, v := range arr {
 		t := TaskDTO{
 			InQueueTime: v.GetInQueueTime(),
-			Val:         v.GetVal(),
+			Priority:    v.GetPriority(),
 			Info:        *(v.GetInfo()),
 			Status:      v.GetStatus(),
 		}

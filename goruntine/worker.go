@@ -30,13 +30,21 @@ func (p *worker) Run() {
 			time.Sleep(time.Second)
 			continue
 		}
-		p.status = WorkerStatusRunning
+		weight := p.pool.queue.Top().weight
+		if weight > int(p.pool.costSum.Load()) {
+			p.pool.mu.Unlock()
+			time.Sleep(time.Millisecond * 100)
+			continue
+		}
+		p.pool.costSum.Add(int32(weight))
 		t := p.pool.queue.Pop().(Task)
+		p.status = WorkerStatusRunning
 		p.pool.mu.Unlock()
 		p.task = &t
 		p.pool.sem <- struct{}{}
 		t.setStatus(TaskStatusRunning)
 		t.inner()
+		p.pool.costSum.Add(-int32(weight))
 		<-p.pool.sem
 		p.pool.Done()
 		if t.GetStatus() != TaskStatusCanceled {
