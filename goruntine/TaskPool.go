@@ -112,7 +112,7 @@ func NewTaskWithCost(priority int, cost int) (Task, context.CancelFunc) {
 
 // NewTaskPool 创建任务池
 // workers: worker 数量
-// maxConcurrent: 最大并发数
+// maxConcurrent: 最大并发权重
 // opts: heap.Option[task] 用于配置优先队列（可以使用 heap.WithLessFunc, heap.WithEqualFunc 等）
 func NewTaskPool(workers int, maxConcurrent int, opts ...Option[Task]) *TaskPool {
 	defaultOpts := []Option[Task]{
@@ -127,11 +127,13 @@ func NewTaskPool(workers int, maxConcurrent int, opts ...Option[Task]) *TaskPool
 		c:             make(chan Task),
 		sem:           make(chan struct{}, workers),
 		maxConcurrent: maxConcurrent,
+		costSum:       atomic.Int32{},
 		cond:          sync.NewCond(&sync.Mutex{}),
 		workers:       make(map[string]*worker),
 		queue:         NewPriorityQueueWithOptions(allOpts...),
 		mu:            sync.Mutex{},
 	}
+	temp.costSum.Store(int32(maxConcurrent))
 
 	return temp
 }
