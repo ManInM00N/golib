@@ -78,6 +78,31 @@ func TestRemoveTask(t *testing.T) {
 	*/
 }
 
+func TestWeightTask(t *testing.T) {
+	pool := NewTaskPool(4, 10, WithFIFO())
+	// defer pool.Stop()
+	pool.Run()
+	for i := 0; i < 20; i++ {
+		weight := (i % 5) + 1
+		val := i
+		task, _ := pool.NewTaskWithCost(func() {
+			fmt.Println("Task executed", val, "with weight", weight)
+			arr, wk := pool.GetTaskStatistic()
+			for _, v := range arr {
+				fmt.Println("  In queue:", v.Info, "Weight:", v.Weight, "InQueueTime:")
+			}
+			for id, w := range wk {
+				fmt.Println("  Worker:", id, "Status:", w)
+			}
+			time.Sleep(time.Second * 2)
+		}, i, 1, weight)
+		pool.Add(task)
+	}
+	pool.Wait()
+	t.Error("All tasks completed")
+
+}
+
 func TestMain(m *testing.M) {
 	code := m.Run()
 

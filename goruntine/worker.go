@@ -49,9 +49,8 @@ func (p *worker) Run() {
 		p.pool.Done()
 		if t.GetStatus() != TaskStatusCanceled {
 			t.setStatus(TaskStatusCompleted)
-		} else {
-			p.status = WorkerStatusIdle
 		}
+		p.status = WorkerStatusIdle
 		p.task = nil
 	}
 	p.pool.workersNum.Add(-1)
